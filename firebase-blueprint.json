@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with study stats and progress",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "avatar": { "type": "string" },
+        "xp": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "lastStudyDate": { "type": "string" },
+        "completedLessons": { "type": "array" },
+        "hearts": { "type": "integer" },
+        "dailyGoalMinutes": { "type": "integer" },
+        "learningReason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "displayName", "xp", "streak", "hearts"]
+    },
+    "Word": {
+      "title": "Word",
+      "description": "Vocabulary word with Arabic harakat and Uzbek translation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "arabic": { "type": "string" },
+        "uzbek": { "type": "string" },
+        "transliteration": { "type": "string" },
+        "category": { "type": "string" },
+        "level": { "type": "string" },
+        "exampleArabic": { "type": "string" },
+        "exampleUzbek": { "type": "string" },
+        "packId": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "arabic", "uzbek", "transliteration", "category", "level"]
+    },
+    "ContentPack": {
+      "title": "ContentPack",
+      "description": "15-day downloadable vocabulary and sentence pack",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "version": { "type": "integer" },
+        "releaseDate": { "type": "string", "format": "date-time" },
+        "isPublished": { "type": "boolean" },
+        "wordCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "version", "isPublished", "wordCount"]
+    },
+    "Unit": {
+      "title": "Unit",
+      "description": "Winding path unit containing lessons",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderIndex": { "type": "integer" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "level": { "type": "string" },
+        "colorHex": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "orderIndex", "title", "description", "level"]
+    },
+    "UserWrongWord": {
+      "title": "UserWrongWord",
+      "description": "Mistakes for spaced repetition review",
+      "type": "object",
+      "properties": {
+        "wordId": { "type": "string" },
+        "arabic": { "type": "string" },
+        "uzbek": { "type": "string" },
+        "transliteration": { "type": "string" },
+        "mistakeCount": { "type": "integer" },
+        "lastReviewedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["wordId", "arabic", "uzbek", "mistakeCount"]
+    },
+    "UserFavorite": {
+      "title": "UserFavorite",
+      "description": "User favorited vocabulary word",
+      "type": "object",
+      "properties": {
+        "wordId": { "type": "string" },
+        "addedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["wordId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "UserProfile" },
+      "description": "Individual user document containing learner profile and progress"
+    },
+    "/words/{wordId}": {
+      "schema": { "$ref": "Word" },
+      "description": "Public educational vocabulary words with full harakat"
+    },
+    "/packs/{packId}": {
+      "schema": { "$ref": "ContentPack" },
+      "description": "15-day content release packs"
+    },
+    "/units/{unitId}": {
+      "schema": { "$ref": "Unit" },
+      "description": "Curriculum units on the learning path"
+    },
+    "/users/{userId}/wrong_words/{wordId}": {
+      "schema": { "$ref": "UserWrongWord" },
+      "description": "User spaced repetition mistake history"
+    },
+    "/users/{userId}/favorites/{wordId}": {
+      "schema": { "$ref": "UserFavorite" },
+      "description": "User favorite dictionary bookmarks"
+    }
+  }
+}

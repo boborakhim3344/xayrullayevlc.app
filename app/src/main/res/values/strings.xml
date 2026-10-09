@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Arab Tili</string>
+    <string name="notification_channel_id">daily_arabic_reminder_channel</string>
+    <string name="notification_channel_name">Kunlik Arab Tili Eslatmalari</string>
+    <string name="notification_channel_desc">Arab tili darsini o\'tkazib yubormaslik uchun kunlik eslatmalar</string>
+    <string name="notification_reminder_title">Bugungi Arab tili darsingiz kutmoqda! 🌟</string>
+    <string name="notification_reminder_content">Kunlik seriyangizni saqlang va bugun yangi so\'zlarni o\'rganing!</string>
+</resources>

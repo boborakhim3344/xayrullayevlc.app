@@ -1,0 +1,152 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email == 'boborakhim3@gmail.com';
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() > 0 &&
+        data.email is string && data.email.size() <= 200 &&
+        data.displayName is string && data.displayName.size() <= 100 &&
+        data.xp is int && data.xp >= 0 &&
+        data.streak is int && data.streak >= 0 &&
+        data.hearts is int && data.hearts >= 0 && data.hearts <= 10 &&
+        (!('avatar' in data) || (data.avatar is string && data.avatar.size() <= 200)) &&
+        (!('lastStudyDate' in data) || (data.lastStudyDate is string && data.lastStudyDate.size() <= 30)) &&
+        (!('completedLessons' in data) || (data.completedLessons is list && data.completedLessons.size() <= 1000)) &&
+        (!('dailyGoalMinutes' in data) || (data.dailyGoalMinutes is int && data.dailyGoalMinutes >= 5 && data.dailyGoalMinutes <= 120)) &&
+        (!('learningReason' in data) || (data.learningReason is string && data.learningReason.size() <= 200)) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidWord(data) {
+      return data.id is string && data.id.size() > 0 &&
+        data.arabic is string && data.arabic.size() > 0 && data.arabic.size() <= 200 &&
+        data.uzbek is string && data.uzbek.size() > 0 && data.uzbek.size() <= 300 &&
+        data.transliteration is string && data.transliteration.size() <= 200 &&
+        data.category is string && data.category.size() <= 100 &&
+        data.level is string && data.level.size() <= 50 &&
+        (!('exampleArabic' in data) || (data.exampleArabic is string && data.exampleArabic.size() <= 400)) &&
+        (!('exampleUzbek' in data) || (data.exampleUzbek is string && data.exampleUzbek.size() <= 400)) &&
+        (!('packId' in data) || (data.packId is string && data.packId.size() <= 100)) &&
+        (!('mediaUrl' in data) || (data.mediaUrl is string && data.mediaUrl.size() <= 500)) &&
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidContentPack(data) {
+      return data.id is string && data.id.size() > 0 &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+        data.version is int && data.version >= 1 &&
+        data.isPublished is bool &&
+        data.wordCount is int && data.wordCount >= 0 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        (!('releaseDate' in data) || data.releaseDate is timestamp) &&
+        (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
+    function isValidUnit(data) {
+      return data.id is string && data.id.size() > 0 &&
+        data.orderIndex is int && data.orderIndex >= 0 &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+        data.description is string && data.description.size() <= 400 &&
+        data.level is string && data.level.size() <= 50 &&
+        (!('colorHex' in data) || (data.colorHex is string && data.colorHex.size() <= 20)) &&
+        (!('createdAt' in data) || data.createdAt is timestamp);
+    }
+
+    function isValidWrongWord(data) {
+      return data.wordId is string && data.wordId.size() > 0 &&
+        data.arabic is string && data.arabic.size() <= 200 &&
+        data.uzbek is string && data.uzbek.size() <= 300 &&
+        data.mistakeCount is int && data.mistakeCount >= 0 &&
+        (!('transliteration' in data) || (data.transliteration is string && data.transliteration.size() <= 200)) &&
+        (!('lastReviewedAt' in data) || data.lastReviewedAt is timestamp);
+    }
+
+    function isValidFavorite(data) {
+      return data.wordId is string && data.wordId.size() > 0 &&
+        (!('addedAt' in data) || data.addedAt is timestamp);
+    }
+
+    // User profiles & stats
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() &&
+        request.auth.uid == userId &&
+        incoming().userId == userId &&
+        isValidUserProfile(incoming());
+      allow update: if isSignedIn() &&
+        request.auth.uid == userId &&
+        incoming().userId == existing().userId &&
+        isValidUserProfile(incoming());
+      allow delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      match /wrong_words/{wordId} {
+        allow get, list: if isSignedIn() && request.auth.uid == userId;
+        allow create, update: if isSignedIn() &&
+          request.auth.uid == userId &&
+          isValidWrongWord(incoming());
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      match /favorites/{wordId} {
+        allow get, list: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn() &&
+          request.auth.uid == userId &&
+          isValidFavorite(incoming());
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // Vocabulary words
+    match /words/{wordId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && isValidWord(incoming());
+      allow update: if isAdmin() && isValidWord(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Content packs (15-day releases)
+    match /packs/{packId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && isValidContentPack(incoming());
+      allow update: if isAdmin() && isValidContentPack(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Curriculum Units
+    match /units/{unitId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && isValidUnit(incoming());
+      allow update: if isAdmin() && isValidUnit(incoming());
+      allow delete: if isAdmin();
+    }
+  }
+}

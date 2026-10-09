@@ -1,0 +1,8 @@
+{
+  "name": "Remix Arab Tili",
+  "description": "O\u0027zbek tilida arab tilini noldan o\u0027rganish uchun Duolingo uslubidagi interaktiv ta\u0027lim ilovasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
